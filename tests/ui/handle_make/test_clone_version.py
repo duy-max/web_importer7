@@ -35,8 +35,8 @@ def test_clone_version_with_valid_conditions(page, config, api):
     logger.info(f"notification: {bell_notification}")
     draft_info = clone.get_draft_version_infor()
     logger.info(f"draft infor: {draft_info}")
-    official_latest_info = clone.get_data_by_row(row=1, action_include=False)
-    logger.info(f"official latest first: {official_latest_info}")
+    # official_latest_info = clone.get_data_by_row(row=1, action_include=False)
+    # logger.info(f"official latest first: {official_latest_info}")
     official_latest_info = clone.get_data_by_row(row=2, action_include=False)
     logger.info(f"official latest seconde: {official_latest_info}")
     # assert api

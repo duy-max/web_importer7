@@ -148,38 +148,48 @@ def soft_format(text, format_func):
 #         return {field: data_partition[row - 1][i] for i, field in enumerate(header)}
 #     logger.warning(f'Total rows: {len(data_partition)}, no data at row #{row}')
 
-def group_tabular_data(header: list | tuple, contents: list | tuple, row=None, playwright_index=False):
+def group_tabular_data(header: list | tuple, contents: list | tuple, row=None):
     """
     Group a tabular data
     :param header: (list/tuple)
     :param contents: (list/tuple)
-    :param row: nếu playwright_index=True thì row dùng index 0-based (giống Playwright .nth())
-    :param playwright_index: bool
+    :param row: (1-based index)
     :return:
     """
     if not contents:
-        return {} if row is not None else []
+        logger.info("No contents available")
+        return {} if row else []
+
+    logger.info(f"[DEBUG] Header keys ({len(header)}): {header}")
+    logger.info(f"[DEBUG] Contents length={len(contents)} | values={contents}")
 
     if len(contents) % len(header) != 0:
+        logger.info(f"[DEBUG] Contents ({len(contents)}) is not divisible by header length ({len(header)}).")
         return {}
+        # raise Exception('Unable to parse data.')
 
-    data_partition = [contents[i:i + len(header)] for i in range(0, len(contents), len(header))]
+    data_partition = [
+        contents[i:i + len(header)] for i in range(0, len(contents), len(header))
+    ]
+    logger.info(f"[DEBUG] Partitioned data into {len(data_partition)} rows")
+    for idx, row_data in enumerate(data_partition, start=1):
+        logger.info(f"[DEBUG] Row {idx}: {row_data}")
 
-    # Nếu không truyền row -> return all rows
+    # Nếu không truyền row → return toàn bộ rows
     if row is None:
+        logger.info("[DEBUG] Returning all rows as list of dicts")
         return [{field: line_data[i] for i, field in enumerate(header)} for line_data in data_partition]
 
-    # Nếu row có truyền
-    if playwright_index:
-        # Playwright: row=0 → dòng đầu tiên trong DOM (kể cả dummy)
-        if 0 <= row < len(data_partition):
-            return {field: data_partition[row][i] for i, field in enumerate(header)}
-    else:
-        # Logic cũ: row=1 → dòng đầu tiên hiển thị
-        if 1 <= row <= len(data_partition):
-            return {field: data_partition[row - 1][i] for i, field in enumerate(header)}
+    # Nếu có row
+    logger.info(f"[DEBUG] Requested row={row} (1-based)")
+    if row <= len(data_partition):
+        result = {field: data_partition[row - 1][i] for i, field in enumerate(header)}
+        logger.info(f"[DEBUG] Returning row {row}: {result}")
+        return result
 
+    logger.warning(f"[DEBUG] Total rows={len(data_partition)}, no data at row #{row}")
     return {}
+
 
 def parse_fields_to_dict(fields: list[str]) -> dict:
     """

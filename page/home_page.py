@@ -120,6 +120,8 @@ class Home(WebHandler):
             self.logger.info(f"value of action info: {action_info}")
 
             draft_info.update(action_info)
+            # ĐÓNG action để không làm lệch index các cell cho lần đọc sau
+            self.clicks(arrows_locator, on_elements=lambda i, _: i == 0, stop_on_first=True)
             self.logger.info(f"value of draft info full: {draft_info}")
         return draft_info
   
