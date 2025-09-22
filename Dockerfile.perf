@@ -1,0 +1,12 @@
+# Dockerfile.perf
+FROM grafana/k6:latest
+
+WORKDIR /app
+
+# copy trực tiếp folder perf
+COPY tests/performance ./perf
+
+# build/transpile nếu cần
+# RUN npm install && npm run build
+
+CMD ["k6", "run", "perf/login.test.js"]

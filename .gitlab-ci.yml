@@ -1,0 +1,62 @@
+variables:
+  DOCKER_TLS_CERTDIR: ""
+  DOCKER_HOST: tcp://docker:2375
+  DOCKER_DRIVER: overlay2
+
+stages:
+  - build
+  - test
+
+build-ui:
+  stage: build
+  image: docker:26
+  services:
+    - docker:26-dind
+  before_script:
+    - echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+  script:
+    - docker build -f Dockerfile.ui -t duytruong911/web_importer:ui .
+    - docker push duytruong911/web_importer:ui
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "develop"'
+
+test-ui:
+  stage: test
+  image: docker:26
+  services:
+    - docker:26-dind
+  needs: ["build-ui"]
+  script:
+    # Login Docker Hub
+    - echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+    
+    # Kéo image mới nhất từ Docker Hub
+    - docker pull duytruong911/web_importer:ui
+
+    # Chạy pytest để verify
+    - docker run --rm duytruong911/web_importer:ui pytest -m "search_valid" tests/ui
+
+    # Run container test có tên để copy report
+    - set +e
+    - docker run --name ui-tests duytruong911/web_importer:ui python run.py
+    - TEST_EXIT=$?
+    - set -e
+
+    # Copy reports/videos ra artifact
+    - mkdir -p reports videos
+    - docker cp ui-tests:/app/reports/. ./reports || true
+    - docker cp ui-tests:/app/videos/. ./videos || true
+
+    # Cleanup container
+    - docker rm -f ui-tests || true
+
+    # Trả lại exit code test
+    - exit $TEST_EXIT
+  artifacts:
+    when: always
+    paths:
+      - reports/
+      - videos/
+    expire_in: 1 week
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "develop"'

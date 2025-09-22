@@ -1,0 +1,10 @@
+# Global configuration file for Playwright tests
+base_url: "https://webimporter.innovavietnam.com"
+base_api: "https://importers.cartek.com.vn"
+base_api_import: "https://importerservice.cartek.com.vn"
+username: "qcteam.rdhw@vn.innova.com"
+password: "qcteam.rdhw"
+imap_user: "qcteam.rdhw@vn.innova.com"
+imap_password: "Inn0v@VN"
+imap_server: "imap.1and1.com"
+imap_port: 993
